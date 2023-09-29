@@ -9,7 +9,7 @@
     "data_loader": {
         "type": "MnistDataLoader",
         "args":{
-            "data_dir": "data/",
+            "data_dir": "/research/osz09/DATA/",
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
