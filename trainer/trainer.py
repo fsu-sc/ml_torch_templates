@@ -16,9 +16,11 @@ class Trainer(BaseTrainer):
         self.device = device
         self.data_loader = data_loader
         if len_epoch is None:
+            print("Epoch-based training")
             # epoch-based training
             self.len_epoch = len(self.data_loader)
         else:
+            print("Iteration-based training")
             # iteration-based training
             self.data_loader = inf_loop(data_loader)
             self.len_epoch = len_epoch
@@ -58,7 +60,10 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+
+            if batch_idx == 0 and epoch == 1:
+                self.writer.add_graph(self.model, data)
 
             if batch_idx == self.len_epoch:
                 break
@@ -92,7 +97,7 @@ class Trainer(BaseTrainer):
                 self.valid_metrics.update('loss', loss.item())
                 for met in self.metric_ftns:
                     self.valid_metrics.update(met.__name__, met(output, target))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():

@@ -29,7 +29,7 @@ class ConfigParser:
         if run_id is None: # use timestamp as default run-id
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')
         self._save_dir = save_dir / 'models' / exper_name / run_id
-        self._log_dir = save_dir / 'log' / exper_name / run_id
+        self._log_dir = save_dir / 'logs' / exper_name / run_id
 
         # make directory for saving checkpoints and log.
         exist_ok = run_id == ''
@@ -52,10 +52,23 @@ class ConfigParser:
         """
         Initialize this class from some cli arguments. Used in train, test.
         """
+        knwon_args, unknown = args.parse_known_args()
+        print("Known arguments:", knwon_args)
+        print("Unknown arguments:", unknown)
+        # Throw a warning if unknown arguments are given
+        if len(unknown) > 0:
+            print("Warning: Unknown arguments provided:", unknown)
+            # Remove unkonwn arguments
+
+
         for opt in options:
             args.add_argument(*opt.flags, default=None, type=opt.type)
         if not isinstance(args, tuple):
-            args = args.parse_args()
+            # OZ I'm mofifying this case. I'm not sure in which scenario the
+            # original code will come to here
+            # Previous sentence args = args.parse_args()
+            args = args.parse_known_args()
+            args = args[0]
 
         if args.device is not None:
             os.environ["CUDA_VISIBLE_DEVICES"] = args.device

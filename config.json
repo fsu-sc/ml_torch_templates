@@ -9,7 +9,7 @@
     "data_loader": {
         "type": "MnistDataLoader",
         "args":{
-            "data_dir": "/research/osz09/DATA/",
+            "data_dir": "/unity/f1/ozavala/DATA/ML_Template",
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
@@ -36,10 +36,10 @@
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 10,
 
-        "save_dir": "saved/",
-        "save_period": 1,
+        "save_dir": "outputs/",
+        "save_period": 10,
         "verbosity": 2,
         
         "monitor": "min val_loss",

@@ -32,9 +32,9 @@ class TensorboardWriter():
 
         self.tb_writer_ftns = {
             'add_scalar', 'add_scalars', 'add_image', 'add_images', 'add_audio',
-            'add_text', 'add_histogram', 'add_pr_curve', 'add_embedding'
+            'add_text', 'add_histogram', 'add_pr_curve', 'add_embedding','add_graph'
         }
-        self.tag_mode_exceptions = {'add_histogram', 'add_embedding'}
+        self.tag_mode_exceptions = {'add_graph','add_histogram', 'add_embedding'}
         self.timer = datetime.now()
 
     def set_step(self, step, mode='train'):
@@ -47,6 +47,10 @@ class TensorboardWriter():
             self.add_scalar('steps_per_sec', 1 / duration.total_seconds())
             self.timer = datetime.now()
 
+    # def add_graph(self, model, input_to_model=None, verbose=False, use_strict_trace=True):
+        # if self.writer is not None:
+            # self.writer.add_graph(model, input_to_model, verbose, use_strict_trace)
+
     def __getattr__(self, name):
         """
         If visualization is configured to use:
@@ -55,6 +59,7 @@ class TensorboardWriter():
             return a blank function handle that does nothing
         """
         if name in self.tb_writer_ftns:
+            # Loads the actual function from tensorboard, with the current writer's method as default.
             add_data = getattr(self.writer, name, None)
 
             def wrapper(tag, data, *args, **kwargs):
