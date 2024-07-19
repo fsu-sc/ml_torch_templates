@@ -18,22 +18,22 @@ class NeSPReSO1DataLoader(BaseDataLoader):
         self.nc_data = NetCDFDataset(self.data_file, 'r')
         
         # Extract relevant data
-        self.n_components = self.nc_data.getncattr('n_components')
-        self.T = self.nc_data.variables['Temperature'][:]
-        self.temp_pca = self.nc_data.variables['Temperature_PC'][:]
-        self.S = self.nc_data.variables['Salinity'][:]
-        self.sal_pca = self.nc_data.variables['Salinity_PC'][:]
-        self.range = self.T.max() - self.T.min(), self.S.max() - self.S.min()
-        self.lat = self.nc_data.variables['lat'][:]
-        self.lon = self.nc_data.variables['lon'][:]
-        self.sss = self.nc_data.variables['SSS'][:]
-        self.sst = self.nc_data.variables['SST'][:]
+        self.n_components = np.array(self.nc_data.getncattr('n_components'))
+        self.T = np.array(self.nc_data.variables['Temperature'][:])
+        self.temp_pca = np.array(self.nc_data.variables['Temperature_PC'][:])
+        self.S = np.array(self.nc_data.variables['Salinity'][:])
+        self.sal_pca = np.array(self.nc_data.variables['Salinity_PC'][:])
+        self.range = np.array(self.T.max() - self.T.min()), np.array(self.S.max() - self.S.min())
+        self.lat = np.array(self.nc_data.variables['lat'][:])
+        self.lon = np.array(self.nc_data.variables['lon'][:])
+        self.sss = np.array(self.nc_data.variables['SSS'][:])
+        self.sst = np.array(self.nc_data.variables['SST'][:])
         self.sst_units = self.nc_data.variables['SST'].units
         if "Kelvin" in self.sst_units:
             self.sst = self.sst - 273
-        self.aviso = self.nc_data.variables['AVISO'][:]
-        self.time = self.nc_data.variables['time'][:]
-        self.depth = self.nc_data.variables['depth'][:]
+        self.aviso = np.array(self.nc_data.variables['AVISO'][:])
+        self.time  = np.array(self.nc_data.variables['time'][:])
+        self.depth = np.array(self.nc_data.variables['depth'][:])
         try:
             self.temp_pcs = self.nc_data.variables['Temperature_PCS'][:]
             self.sal_pcs = self.nc_data.variables['Salinity_PCS'][:]

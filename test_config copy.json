@@ -31,7 +31,7 @@
             "amsgrad": true
         }
     },
-    "loss": "combined_loss",
+    "loss": "weighted_mse_loss",
     "metrics": [
     ],
     "lr_scheduler": {
@@ -50,5 +50,5 @@
         "early_stop": 20,
         "tensorboard": false
     },
-    "resume": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log/models/NeSPReSO1_weighted_mse_loss/0716_102639/checkpoint-epoch2000.pth"
+    "resume": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log/models/NeSPReSO1_weighted_mse_loss/0719_105904/checkpoint-epoch2000.pth"
 }

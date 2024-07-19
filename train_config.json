@@ -31,7 +31,7 @@
             "amsgrad": false
         }
     },
-    "loss": "combined_loss",
+    "loss": "weighted_mse_loss",
     "metrics": [
     ],
     "lr_scheduler": {
@@ -45,7 +45,7 @@
         "epochs": 2000,
         "save_dir": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log",
         "save_period": 2000,
-        "verbosity": 0,
+        "verbosity": 1,
         "monitor": "min val_loss",
         "early_stop": 100,
         "tensorboard": false
