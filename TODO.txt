@@ -1,0 +1,2 @@
+- maps
+- plan what else needs to be changed - train, log, save, optimization

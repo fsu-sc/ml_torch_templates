@@ -4,7 +4,93 @@ import pandas as pd
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
+import numpy as np
+import pandas as pd
+import datetime
 
+def inverse_pca_transform(pca, pcs, mean):
+    mult = pcs @ pca
+    #broadcast mean
+    return mult + mean
+
+def time_sine_cosine(dates, cycle, multiple=1):
+    """
+    Compute the sine and cosine values for specified cycles.
+
+    Parameters:
+    - dates: list of datetime objects or single datetime object
+    - cycle: string name of the cycle (e.g., 'diurnal', 'lunar')
+    - multiple: integer multiplier for the cycle (e.g., 2 for double the period)
+
+    Returns:
+    - sine_vals: array of sine values
+    - cosine_vals: array of cosine values
+    """
+    
+    # Define the periods of different cycles in days
+    CYCLE_PERIODS = {
+        'diurnal': 1,
+        'lunar': 29.53,
+        'annual': 365.25,
+        'solar': 11 * 365.25,  # converting solar cycle to days
+        'milankovitch_eccentricity': 100000 * 365.25,
+        'milankovitch_axial_tilt': 41000 * 365.25,
+        'milankovitch_precession': 23000 * 365.25
+    }
+    
+    if cycle not in CYCLE_PERIODS:
+        raise ValueError(f"Cycle {cycle} is not recognized. Available cycles: {list(CYCLE_PERIODS.keys())}")
+    
+    # Convert input dates to pandas DatetimeIndex for easy manipulation
+    if not isinstance(dates, (list, pd.DatetimeIndex)):
+        dates = pd.DatetimeIndex([dates])
+    else:
+        dates = pd.DatetimeIndex(dates)
+    
+    # Get the period in days and adjust for multiple
+    period_days = CYCLE_PERIODS[cycle] * multiple
+    
+    # Calculate days since a reference date (e.g., the Unix epoch)
+    days_since_epoch = (dates - pd.Timestamp("1970-01-01")) / pd.Timedelta(days=1)
+    
+    # Calculate the phase angle in radians
+    phase_angle = 2 * np.pi * (days_since_epoch / period_days)
+    
+    # Calculate sine and cosine values
+    sine_vals = np.sin(phase_angle)
+    cosine_vals = np.cos(phase_angle)
+    
+    return sine_vals, cosine_vals
+
+# # Example usage
+# # Define a list of dates or a single date
+# dates = [datetime.datetime(2023, 6, 21), datetime.datetime(2024, 6, 21)]
+# cycle_name = 'annual'
+# multiple = 1
+
+# sine_vals, cosine_vals = time_sine_cosine(dates, cycle_name, multiple)
+
+# # Print results
+# for date, sine_val, cosine_val in zip(dates, sine_vals, cosine_vals):
+#     print(f"Date: {date}, Sine: {sine_val:.4f}, Cosine: {cosine_val:.4f}")
+
+def lat_sine_cosine(lat):
+    """
+    Compute the corresponding sine and cosine values for global latitude.
+
+    Parameters:
+    - lat: latitude in degrees
+    """
+    return np.sin(2*np.pi*(lat/180)), np.cos(2*np.pi*(lat/180))
+
+def lon_sine_cosine(lon):
+    """
+    Compute the corresponding sine and cosine values for global longitude.
+
+    Parameters:
+    - lon: longitude in degrees
+    """
+    return np.sin(2*np.pi*(lon/360)), np.cos(2*np.pi*(lon/360))
 
 def ensure_dir(dirname):
     dirname = Path(dirname)

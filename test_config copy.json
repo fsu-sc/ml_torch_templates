@@ -1,0 +1,54 @@
+{
+    "name": "NeSPReSO1_weighted_mse_loss",
+    "n_gpu": 1,
+
+    "arch": {
+        "type": "NeSPReSO",
+        "args": {
+            "input_dim": 9,
+            "hidden_dim_config": [512, 512],
+            "output_dim": 30,
+            "dropout_prob": 0.2,
+            "hidden_activation": "ReLU"
+        }
+    },
+    "data_loader": {
+        "type": "NeSPReSO1DataLoader",
+        "args": {
+            "data_dir": "/unity/g2/jmiranda/SubsurfaceFields/Data/model_input/nespreso1_test_data_42.nc",
+            "batch_size": 6000,
+            "shuffle": false,
+            "validation_split": 0.1,
+            "num_workers": 3,
+            "ignore_params": []  
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.001,
+            "weight_decay": 0,
+            "amsgrad": true
+        }
+    },
+    "loss": "combined_loss",
+    "metrics": [
+    ],
+    "lr_scheduler": {
+        "type": "StepLR",
+        "args": {
+            "step_size": 50,
+            "gamma": 0.1
+        }
+    },
+    "trainer": {
+        "epochs": 200,
+        "save_dir": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log",
+        "save_period": 25,
+        "verbosity": 2,
+        "monitor": "min val_loss",
+        "early_stop": 20,
+        "tensorboard": false
+    },
+    "resume": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log/models/NeSPReSO1_weighted_mse_loss/0716_102639/checkpoint-epoch2000.pth"
+}

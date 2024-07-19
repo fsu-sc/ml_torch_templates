@@ -10,9 +10,10 @@ import model.model as module_arch
 from parse_config import ConfigParser
 from trainer import Trainer
 from utils import prepare_device
+import os
 
 # fix random seeds for reproducibility
-SEED = 123
+SEED = 42
 torch.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -20,8 +21,9 @@ np.random.seed(SEED)
 
 # %% Read the args
 args = argparse.ArgumentParser(description='PyTorch Template')
-args.add_argument('-c', '--config', default='config.json', type=str,
-                    help='config file path (default: None)')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+args.add_argument('-c', '--config', default=os.path.join(script_dir, 'train_config.json'), type=str,
+                  help='config file path (default: config.json in the script directory)')
 args.add_argument('-r', '--resume', default=None, type=str,
                     help='path to latest checkpoint (default: None)')
 args.add_argument('-d', '--device', default=None, type=str,
