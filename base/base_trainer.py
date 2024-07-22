@@ -72,6 +72,7 @@ class BaseTrainer:
 
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
+            best_epoch = -1
             if self.mnt_mode != 'off':
                 try:
                     # check whether model performance improved or not, according to specified metric(mnt_metric)
@@ -86,6 +87,7 @@ class BaseTrainer:
                 if improved:
                     self.mnt_best = log[self.mnt_metric]
                     not_improved_count = 0
+                    best_epoch = epoch
                     best = True
                 else:
                     not_improved_count += 1
@@ -94,9 +96,13 @@ class BaseTrainer:
                     self.logger.info("Validation performance didn\'t improve for {} epochs. "
                                      "Training stops.".format(self.early_stop))
                     break
-
-            if epoch % self.save_period == 0:
+            if self.save_period == 0:
+                if not_improved_count == 0:
+                    self._save_checkpoint(epoch, save_best=best)
+            elif epoch % self.save_period == 0 or not_improved_count == 0:
                 self._save_checkpoint(epoch, save_best=best)
+                
+        self.logger.info("Training completed. Best {} was {} at epoch {}.".format(self.mnt_metric, self.mnt_best, best_epoch))
 
     def _save_checkpoint(self, epoch, save_best=False):
         """

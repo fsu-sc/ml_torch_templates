@@ -18,15 +18,15 @@
             "data_dir": "/unity/g2/jmiranda/SubsurfaceFields/Data/model_input/nespreso1_test_data_42.nc",
             "batch_size": 6000,
             "shuffle": false,
-            "validation_split": 0.1,
-            "num_workers": 3,
+            "validation_split": 0.2,
+            "num_workers": 10,
             "ignore_params": []  
         }
     },
     "optimizer": {
         "type": "Adam",
         "args": {
-            "lr": 0.005,
+            "lr": 0.003,
             "weight_decay": 0.1,
             "amsgrad": false
         }
@@ -42,13 +42,13 @@
         }
     },
     "trainer": {
-        "epochs": 2000,
+        "epochs": 500,
         "save_dir": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log",
-        "save_period": 25,
-        "verbosity": 2,
+        "save_period": 100,
+        "verbosity": 1,
         "monitor": "min val_loss",
         "early_stop": 100,
         "tensorboard": false
     },
-    "resume": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log/models/NeSPReSO1_weighted_mse_loss/0718_163606/checkpoint-epoch2000.pth"
+    "resume": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log/models/NeSPReSO1_weighted_mse_loss/0722_135645/model_best.pth"
 }

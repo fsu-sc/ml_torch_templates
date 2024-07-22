@@ -1,6 +1,6 @@
 {
     "name": "NeSPReSO1_weighted_mse_loss",
-    "n_gpu": 1,
+    "n_gpu": 4,
 
     "arch": {
         "type": "NeSPReSO",
@@ -26,12 +26,12 @@
     "optimizer": {
         "type": "Adam",
         "args": {
-            "lr": 0.005,
+            "lr": 0.003,
             "weight_decay": 0.1,
             "amsgrad": false
         }
     },
-    "loss": "weighted_mse_loss",
+    "loss": "combined_loss",
     "metrics": [
     ],
     "lr_scheduler": {
@@ -42,9 +42,9 @@
         }
     },
     "trainer": {
-        "epochs": 2000,
+        "epochs": 500,
         "save_dir": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log",
-        "save_period": 2000,
+        "save_period": 100,
         "verbosity": 1,
         "monitor": "min val_loss",
         "early_stop": 100,

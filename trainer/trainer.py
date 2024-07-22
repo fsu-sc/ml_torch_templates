@@ -4,7 +4,6 @@ from torchvision.utils import make_grid
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
 
-
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -25,7 +24,6 @@ class Trainer(BaseTrainer):
             self.data_loader = inf_loop(data_loader) 
             self.len_epoch = len_epoch
         self.valid_data_loader = valid_data_loader
-        # maybe define the variances here.
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
@@ -42,8 +40,6 @@ class Trainer(BaseTrainer):
         """
         self.model.train()
         self.train_metrics.reset()
-        # weights = self.data_loader.get_pca_variances().to(self.device)
-        # concatenated_variance = np.concatenate([temp_variance, sal_variance])
         for batch_idx, (data, target) in enumerate(self.data_loader):
             data, target = data.to(self.device), target.to(self.device)
 
@@ -63,16 +59,13 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
             if batch_idx == 0 and epoch == 1:
                 detached_data = data.detach()
-                # Extract the original model from DataParallel if necessary
                 model_to_trace = self.model.module if isinstance(self.model, torch.nn.DataParallel) else self.model
                 self.writer.add_graph(model_to_trace, detached_data)
-                # self.writer.add_graph(self.model, detached_data)
 
-            if batch_idx == self.len_epoch:
+            if batch_idx >= self.len_epoch:
                 break
         log = self.train_metrics.result()
 
@@ -93,7 +86,6 @@ class Trainer(BaseTrainer):
         """
         self.model.eval()
         self.valid_metrics.reset()
-        # weights = self.data_loader.get_pca_variances().to(self.device)
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
@@ -105,14 +97,18 @@ class Trainer(BaseTrainer):
                 self.valid_metrics.update('loss', loss.item())
                 for met in self.metric_ftns:
                     self.valid_metrics.update(met.__name__, met(output, target))
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
-        # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
         return self.valid_metrics.result()
 
     def _progress(self, batch_idx):
+        """
+        Calculate training progress
+
+        :param batch_idx: Integer, current batch index.
+        :return: String, formatted progress information.
+        """
         base = '[{}/{} ({:.0f}%)]'
         if hasattr(self.data_loader, 'n_samples'):
             current = batch_idx * self.data_loader.batch_size
