@@ -9,7 +9,7 @@ def nll_loss(output, target):
 def rmse_loss(output, target):
     return torch.sqrt(F.mse_loss(output, target))
 
-def weighted_mse_loss(output, target, data_loader):
+def weighted_mse_loss(output, target, data_loader, input):
     # Retrieve device from output tensor
     device = output.device
 
@@ -23,7 +23,7 @@ def weighted_mse_loss(output, target, data_loader):
     return loss
 
 # TODO: fix multi-gpu implementation
-def PCA_loss(output, target, dataloader):
+def PCA_loss(output, target, dataloader, input):
     # Retrieve device from output tensor
     device = output.device
     n_components = dataloader.dataset.get_n_components()
@@ -48,13 +48,13 @@ def PCA_loss(output, target, dataloader):
     
     # Calculate surface difference
     pred_surface_t = pred_temp_profiles[:, 0]
-    true_surface_t = nn.Parameter(dataloader.dataset.get_surface_T().to(device), requires_grad=True)
+    true_surface_t = input[:,-2]
     pred_surface_s = pred_sal_profiles[:, 0]
-    true_surface_s = nn.Parameter(dataloader.dataset.get_surface_S().to(device), requires_grad=True)
+    true_surface_s = input[:,-3]
     
     # Calculate surface penalization terms (optional, commented out in this example)
-    # mse_surface_t = F.mse_loss(pred_surface_t, true_surface_t)
-    # mse_surface_s = F.mse_loss(pred_surface_s, true_surface_s)
+    mse_surface_t = F.mse_loss(pred_surface_t, true_surface_t)
+    mse_surface_s = F.mse_loss(pred_surface_s, true_surface_s)
     
     # Apply the correct weighting and range
     temp_range, sal_range = dataloader.dataset.get_range()
@@ -62,12 +62,14 @@ def PCA_loss(output, target, dataloader):
     sal_range = torch.tensor(sal_range, device=device) if isinstance(sal_range, torch.Tensor) else torch.tensor(sal_range).to(device)
 
     # Calculate the final loss, ensuring `n_samples` is an integer
-    A = mse_temp / temp_range
-    B = mse_sal / sal_range
+    A = (mse_temp + mse_surface_t/750) / temp_range
+    B = (mse_sal + mse_surface_s/750) / sal_range
+    # A = mse_temp / temp_range
+    # B = mse_sal / sal_range
     return (A + B) / n_samples
 
-def combined_loss(output, target, dataloader):
-    return 5.5 * PCA_loss(output, target, dataloader) + 3.6 * weighted_mse_loss(output, target, dataloader)
+def combined_loss(output, target, dataloader, input):
+    return 3.6 * PCA_loss(output, target, dataloader, input) + 5.5 * weighted_mse_loss(output, target, dataloader, input)
 
     
 # class CombinedPCALoss(nn.Module):

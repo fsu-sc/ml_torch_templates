@@ -15,9 +15,9 @@
     "data_loader": {
         "type": "NeSPReSO1DataLoader",
         "args": {
-            "data_dir": "/unity/g2/jmiranda/SubsurfaceFields/Data/model_input/nespreso1_train_val_data_PCA_42.nc",
+            "data_dir": "/home/jrm22n/NeSPReSO/ml_torch_templates/data/nespreso1_train_val_data_PCA_42.nc",
             "batch_size": 6000,
-            "shuffle": true,
+            "shuffle": false,
             "validation_split": 0.2,
             "num_workers": 10 ,
             "ignore_params": []  
@@ -27,7 +27,7 @@
         "type": "Adam",
         "args": {
             "lr": 0.003,
-            "weight_decay": 0.1,
+            "weight_decay": 0.05,
             "amsgrad": false
         }
     },
@@ -37,17 +37,17 @@
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
-            "step_size": 500,
+            "step_size": 600,
             "gamma": 0.1
         }
     },
     "trainer": {
-        "epochs": 500,
-        "save_dir": "/unity/g2/jmiranda/ML_Templates/ml_torch_templates/saved/log",
-        "save_period": 100,
+        "epochs": 8000,
+        "save_dir": "/home/jrm22n/NeSPReSO/ml_torch_templates/saved/log",
+        "save_period": 0,
         "verbosity": 1,
         "monitor": "min val_loss",
-        "early_stop": 100,
+        "early_stop": 1000,
         "tensorboard": false
     }
 }
