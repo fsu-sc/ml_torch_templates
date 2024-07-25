@@ -17,8 +17,8 @@
         "args": {
             "data_dir": "/home/jrm22n/NeSPReSO/ml_torch_templates/data/nespreso1_train_val_data_PCA_42.nc",
             "batch_size": 6000,
-            "shuffle": false,
-            "validation_split": 0.2,
+            "shuffle": true,
+            "validation_split": 0.17647,
             "num_workers": 10 ,
             "ignore_params": []  
         }
