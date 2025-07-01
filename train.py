@@ -20,7 +20,7 @@ np.random.seed(SEED)
 
 # %% Read the args
 args = argparse.ArgumentParser(description='PyTorch Template')
-args.add_argument('-c', '--config', default='config.json', type=str,
+args.add_argument('-c', '--config', default='config.yml', type=str,
                     help='config file path (default: None)')
 args.add_argument('-r', '--resume', default=None, type=str,
                     help='path to latest checkpoint (default: None)')
@@ -34,6 +34,10 @@ options = [
     CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
 ]
 config = ConfigParser.from_args(args, options)
+
+# Set matmul precision if specified in config
+if config.config.get('matmul_precision', None):
+    torch.set_float32_matmul_precision(config.config['matmul_precision'])
 
 # %%
 logger = config.get_logger('train')
@@ -51,6 +55,8 @@ device, device_ids = prepare_device(config['n_gpu'])
 model = model.to(device)
 if len(device_ids) > 1:
     model = torch.nn.DataParallel(model, device_ids=device_ids)
+if config.config.get('compile', False):
+    model = torch.compile(model)
 
 # get function handles of loss and metrics
 criterion = getattr(module_loss, config['loss'])

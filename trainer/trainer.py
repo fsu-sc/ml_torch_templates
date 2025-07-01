@@ -32,6 +32,10 @@ class Trainer(BaseTrainer):
         self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
         self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.metric_ftns], writer=self.writer)
 
+        self.use_amp = self.config.config.get('amp', False)
+        if self.use_amp:
+            self.scaler = torch.cuda.amp.GradScaler()
+
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -45,10 +49,18 @@ class Trainer(BaseTrainer):
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
-            output = self.model(data)
-            loss = self.criterion(output, target)
-            loss.backward()
-            self.optimizer.step()
+            if self.use_amp:
+                with torch.cuda.amp.autocast():
+                    output = self.model(data)
+                    loss = self.criterion(output, target)
+                self.scaler.scale(loss).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+            else:
+                output = self.model(data)
+                loss = self.criterion(output, target)
+                loss.backward()
+                self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
@@ -90,8 +102,13 @@ class Trainer(BaseTrainer):
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
                 data, target = data.to(self.device), target.to(self.device)
 
-                output = self.model(data)
-                loss = self.criterion(output, target)
+                if self.use_amp:
+                    with torch.cuda.amp.autocast():
+                        output = self.model(data)
+                        loss = self.criterion(output, target)
+                else:
+                    output = self.model(data)
+                    loss = self.criterion(output, target)
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.valid_metrics.update('loss', loss.item())

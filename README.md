@@ -5,30 +5,36 @@ PyTorch deep learning project made easy.
 
 <!-- code_chunk_output -->
 
-* [PyTorch Template Project](#pytorch-template-project)
-	* [Requirements](#requirements)
-	* [Features](#features)
-	* [Folder Structure](#folder-structure)
-	* [Usage](#usage)
-		* [Config file format](#config-file-format)
-		* [Using config files](#using-config-files)
-		* [Resuming from checkpoints](#resuming-from-checkpoints)
-    * [Using Multiple GPU](#using-multiple-gpu)
-	* [Customization](#customization)
-		* [Custom CLI options](#custom-cli-options)
-		* [Data Loader](#data-loader)
-		* [Trainer](#trainer)
-		* [Model](#model)
-		* [Loss](#loss)
-		* [metrics](#metrics)
-		* [Additional logging](#additional-logging)
-		* [Validation data](#validation-data)
-		* [Checkpoints](#checkpoints)
-    * [Tensorboard Visualization](#tensorboard-visualization)
-	* [Contribution](#contribution)
-	* [TODOs](#todos)
-	* [License](#license)
-	* [Acknowledgements](#acknowledgements)
+- [PyTorch Template Project](#pytorch-template-project)
+  - [Requirements](#requirements)
+  - [Features](#features)
+  - [Folder Structure](#folder-structure)
+  - [Usage](#usage)
+    - [Config file format](#config-file-format)
+    - [Using config files](#using-config-files)
+    - [Resuming from checkpoints](#resuming-from-checkpoints)
+    - [Using Multiple GPU](#using-multiple-gpu)
+  - [Speed optimizations](#speed-optimizations)
+    - [Model compilation](#model-compilation)
+    - [Mixed precision training](#mixed-precision-training)
+    - [Matrix multiplication precision](#matrix-multiplication-precision)
+  - [Customization](#customization)
+    - [Project initialization](#project-initialization)
+    - [Custom CLI options](#custom-cli-options)
+    - [Data Loader](#data-loader)
+    - [Trainer](#trainer)
+    - [Model](#model)
+    - [Loss](#loss)
+    - [Metrics](#metrics)
+    - [Additional logging](#additional-logging)
+    - [Testing](#testing)
+    - [Validation data](#validation-data)
+    - [Checkpoints](#checkpoints)
+    - [Tensorboard Visualization](#tensorboard-visualization)
+  - [Contribution](#contribution)
+  - [TODOs](#todos)
+  - [License](#license)
+  - [Acknowledgements](#acknowledgements)
 
 <!-- /code_chunk_output -->
 
@@ -40,7 +46,7 @@ PyTorch deep learning project made easy.
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
-* `.json` config file support for convenient parameter tuning.
+* `.yml` config file support for convenient parameter tuning.
 * Customizable command line options for more convenient parameter tuning.
 * Checkpoint saving and resuming.
 * Abstract base classes for faster development:
@@ -55,7 +61,7 @@ PyTorch deep learning project made easy.
   ├── train.py - main script to start training
   ├── test.py - evaluation of trained model
   │
-  ├── config.json - holds configuration for training
+  ├── config.yml - holds configuration for training
   ├── parse_config.py - class to handle config file and cli options
   │
   ├── new_project.py - initialize new project with template files
@@ -94,71 +100,65 @@ PyTorch deep learning project made easy.
 
 ## Usage
 The code in this repo is an MNIST example of the template.
-Try `python train.py -c config.json` to run code.
+Try `python train.py -c config.yml` to run code.
 
 ### Config file format
-Config files are in `.json` format:
-```javascript
-{
-  "name": "Mnist_LeNet",        // training session name
-  "n_gpu": 1,                   // number of GPUs to use for training.
-  
-  "arch": {
-    "type": "MnistModel",       // name of model architecture to train
-    "args": {
+Config files are in `.yml` format:
+```yaml
+name: Mnist_LeNet
+n_gpu: 1
+amp: true
+matmul_precision: medium
+compile: false
 
-    }                
-  },
-  "data_loader": {
-    "type": "MnistDataLoader",         // selecting data loader
-    "args":{
-      "data_dir": "data/",             // dataset path
-      "batch_size": 64,                // batch size
-      "shuffle": true,                 // shuffle training data before splitting
-      "validation_split": 0.1          // size of validation dataset. float(portion) or int(number of samples)
-      "num_workers": 2,                // number of cpu processes to be used for data loading
-    }
-  },
-  "optimizer": {
-    "type": "Adam",
-    "args":{
-      "lr": 0.001,                     // learning rate
-      "weight_decay": 0,               // (optional) weight decay
-      "amsgrad": true
-    }
-  },
-  "loss": "nll_loss",                  // loss
-  "metrics": [
-    "accuracy", "top_k_acc"            // list of metrics to evaluate
-  ],                         
-  "lr_scheduler": {
-    "type": "StepLR",                  // learning rate scheduler
-    "args":{
-      "step_size": 50,          
-      "gamma": 0.1
-    }
-  },
-  "trainer": {
-    "epochs": 100,                     // number of training epochs
-    "save_dir": "saved/",              // checkpoints are saved in save_dir/models/name
-    "save_freq": 1,                    // save checkpoints every save_freq epochs
-    "verbosity": 2,                    // 0: quiet, 1: per epoch, 2: full
-  
-    "monitor": "min val_loss"          // mode and metric for model performance monitoring. set 'off' to disable.
-    "early_stop": 10	                 // number of epochs to wait before early stop. set 0 to disable.
-  
-    "tensorboard": true,               // enable tensorboard visualization
-  }
-}
+arch:
+  type: MnistModel
+  args: {}
+
+data_loader:
+  type: MnistDataLoader
+  args:
+    data_dir: /Net/work/ozavala/DATA/ML_Template/
+    batch_size: 10
+    shuffle: true
+    validation_split: 0.1
+    num_workers: 2
+
+optimizer:
+  type: Adam
+  args:
+    lr: 0.001
+    weight_decay: 0
+    amsgrad: true
+
+loss: nll_loss
+metrics:
+  - accuracy
+  - top_k_acc
+
+lr_scheduler:
+  type: StepLR
+  args:
+    step_size: 50
+    gamma: 0.1
+
+trainer:
+  epochs: 10
+  save_dir: outputs/
+  save_period: 10
+  verbosity: 2
+  monitor: min val_loss
+  early_stop: 10
+  tensorboard: true 
 ```
 
 Add addional configurations if you need.
 
 ### Using config files
-Modify the configurations in `.json` config files, then run:
+Modify the configurations in `.yml` config files, then run:
 
   ```
-  python train.py --config config.json
+  python train.py --config config.yml
   ```
 
 ### Resuming from checkpoints
@@ -173,12 +173,43 @@ You can enable multi-GPU training by setting `n_gpu` argument of the config file
 If configured to use smaller number of gpu than available, first n devices will be used by default.
 Specify indices of available GPUs by cuda environmental variable.
   ```
-  python train.py --device 2,3 -c config.json
+  python train.py --device 2,3 -c config.yml
   ```
   This is equivalent to
   ```
   CUDA_VISIBLE_DEVICES=2,3 python train.py -c config.py
   ```
+
+## Speed optimizations
+
+### Model compilation
+
+If you are using pytorch 1.1 or higher, you can use `torch.compile` to compile your model. You can turn on the option in the config file.
+
+  ```yaml
+  compile: true
+  ```
+
+### Mixed precision training
+
+If you are using pytorch 1.1 or higher, you can use `torch.cuda.amp.autocast` to enable mixed precision training. You can turn on the option in the `config.yml` file.
+
+  ```yaml
+  amp: true
+  ```
+
+### Matrix multiplication precision
+
+If you are using pytorch 1.1 or higher, you can use `torch.set_float32_matmul_precision` to set the precision of matrix multiplication. You can turn on the option in the config file.
+
+```yaml
+matmul_precision: medium
+```
+
+-The precision can be one of the following:
+- `highest` – Maximum precision (Default), use FP32.
+- `high` – Mixed precision. Either use TensorFloat32 or two bfloat16 to represent float32.
+- `medium` – Reduced precision for speed. Use bfloat16 if allowed.
 
 ## Customization
 
@@ -192,7 +223,7 @@ This script will filter out unneccessary files like cache, git files or readme f
 Changing values of config file is a clean, safe and easy way of tuning hyperparameters. However, sometimes
 it is better to have command line options if some values need to be changed too often or quickly.
 
-This template uses the configurations stored in the json file by default, but by registering custom options as follows
+This template uses the configurations stored in the yml file by default, but by registering custom options as follows
 you can change some of them using CLI flags.
 
   ```python
@@ -206,7 +237,7 @@ you can change some of them using CLI flags.
   ```
 `target` argument should be sequence of keys, which are used to access that option in the config dict. In this example, `target` 
 for the learning rate option is `('optimizer', 'args', 'lr')` because `config['optimizer']['args']['lr']` points to the learning rate.
-`python train.py -c config.json --bs 256` runs training with options given in `config.json` except for the `batch size`
+`python train.py -c config.yml --bs 256` runs training with options given in `config.yml` except for the `batch size`
 which is increased to 256 by command line options.
 
 
@@ -283,8 +314,10 @@ Custom loss functions can be implemented in 'model/loss.py'. Use them by changin
 Metric functions are located in 'model/metric.py'.
 
 You can monitor multiple metrics by providing a list in the configuration file, e.g.:
-  ```json
-  "metrics": ["accuracy", "top_k_acc"],
+  ```yaml
+  metrics:
+    - accuracy
+    - top_k_acc
   ```
 
 ### Additional logging
@@ -308,8 +341,8 @@ The `validation_split` can be a ratio of validation set per total data(0.0 <= fl
 
 ### Checkpoints
 You can specify the name of the training session in config files:
-  ```json
-  "name": "MNIST_LeNet",
+  ```yaml
+  name: MNIST_LeNet
   ```
 
 The checkpoints will be saved in `save_dir/name/timestamp/checkpoint_epoch_n`, with timestamp in mmdd_HHMMSS format.

@@ -4,6 +4,7 @@ import pandas as pd
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
+import yaml
 
 
 def ensure_dir(dirname):
@@ -20,6 +21,16 @@ def write_json(content, fname):
     fname = Path(fname)
     with fname.open('wt') as handle:
         json.dump(content, handle, indent=4, sort_keys=False)
+
+def read_yaml(fname):
+    fname = Path(fname)
+    with fname.open('rt') as handle:
+        return yaml.safe_load(handle)
+
+def write_yaml(content, fname):
+    fname = Path(fname)
+    with fname.open('wt') as handle:
+        yaml.safe_dump(content, handle, default_flow_style=False)
 
 def inf_loop(data_loader):
     ''' wrapper function for endless data loader. '''
