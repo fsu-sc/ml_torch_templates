@@ -39,6 +39,8 @@ def main(config):
     # prepare model for testing
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
+    if config.config.get('compile', False):
+        model = torch.compile(model)
     model.eval()
 
     total_loss = 0.0
@@ -47,14 +49,19 @@ def main(config):
     with torch.no_grad():
         for i, (data, target) in enumerate(tqdm(data_loader)):
             data, target = data.to(device), target.to(device)
-            output = model(data)
+            if config.get('amp', False):
+                with torch.cuda.amp.autocast():
+                    output = model(data)
+                    loss = loss_fn(output, target)
+            else:
+                output = model(data)
+                loss = loss_fn(output, target)
 
             #
             # save sample images, or do something with output here
             #
 
             # computing loss, metrics on test set
-            loss = loss_fn(output, target)
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
             for i, metric in enumerate(metric_fns):
@@ -78,4 +85,7 @@ if __name__ == '__main__':
                       help='indices of GPUs to enable (default: all)')
 
     config = ConfigParser.from_args(args)
+    # Set matmul precision if specified in config
+    if config.config.get('matmul_precision', None):
+        torch.set_float32_matmul_precision(config.config['matmul_precision'])
     main(config)

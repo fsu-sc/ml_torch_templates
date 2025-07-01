@@ -1,0 +1,45 @@
+name: Mnist_LeNet
+n_gpu: 1
+amp: true
+matmul_precision: medium
+compile: false
+
+arch:
+  type: MnistModel
+  args: {}
+
+data_loader:
+  type: MnistDataLoader
+  args:
+    data_dir: /Net/work/ozavala/DATA/ML_Template/
+    batch_size: 10
+    shuffle: true
+    validation_split: 0.1
+    num_workers: 2
+
+optimizer:
+  type: Adam
+  args:
+    lr: 0.001
+    weight_decay: 0
+    amsgrad: true
+
+loss: nll_loss
+metrics:
+  - accuracy
+  - top_k_acc
+
+lr_scheduler:
+  type: StepLR
+  args:
+    step_size: 50
+    gamma: 0.1
+
+trainer:
+  epochs: 10
+  save_dir: outputs/
+  save_period: 10
+  verbosity: 2
+  monitor: min val_loss
+  early_stop: 10
+  tensorboard: true 
