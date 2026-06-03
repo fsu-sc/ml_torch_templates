@@ -37,10 +37,11 @@ PyTorch deep learning project made easy.
 * PyTorch >= 0.4 (1.2 recommended)
 * tqdm (Optional for `test.py`)
 * tensorboard >= 1.14 (see [Tensorboard Visualization](#tensorboard-visualization))
+* PyYAML >= 5.1
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
-* `.json` config file support for convenient parameter tuning.
+* `.yml` config file support for convenient parameter tuning.
 * Customizable command line options for more convenient parameter tuning.
 * Checkpoint saving and resuming.
 * Abstract base classes for faster development:
@@ -55,7 +56,7 @@ PyTorch deep learning project made easy.
   ├── train.py - main script to start training
   ├── test.py - evaluation of trained model
   │
-  ├── config.json - holds configuration for training
+  ├── config.yml - holds configuration for training
   ├── parse_config.py - class to handle config file and cli options
   │
   ├── new_project.py - initialize new project with template files
@@ -85,7 +86,7 @@ PyTorch deep learning project made easy.
   ├── logger/ - module for tensorboard visualization and logging
   │   ├── visualization.py
   │   ├── logger.py
-  │   └── logger_config.json
+  │   └── logger_config.yml
   │  
   └── utils/ - small utility functions
       ├── util.py
@@ -94,71 +95,62 @@ PyTorch deep learning project made easy.
 
 ## Usage
 The code in this repo is an MNIST example of the template.
-Try `python train.py -c config.json` to run code.
+Try `python train.py -c config.yml` to run code.
 
 ### Config file format
-Config files are in `.json` format:
-```javascript
-{
-  "name": "Mnist_LeNet",        // training session name
-  "n_gpu": 1,                   // number of GPUs to use for training.
-  
-  "arch": {
-    "type": "MnistModel",       // name of model architecture to train
-    "args": {
+Config files are in `.yml` format:
+```yaml
+name: Mnist_LeNet          # training session name
+n_gpu: 1                   # number of GPUs to use for training
 
-    }                
-  },
-  "data_loader": {
-    "type": "MnistDataLoader",         // selecting data loader
-    "args":{
-      "data_dir": "data/",             // dataset path
-      "batch_size": 64,                // batch size
-      "shuffle": true,                 // shuffle training data before splitting
-      "validation_split": 0.1          // size of validation dataset. float(portion) or int(number of samples)
-      "num_workers": 2,                // number of cpu processes to be used for data loading
-    }
-  },
-  "optimizer": {
-    "type": "Adam",
-    "args":{
-      "lr": 0.001,                     // learning rate
-      "weight_decay": 0,               // (optional) weight decay
-      "amsgrad": true
-    }
-  },
-  "loss": "nll_loss",                  // loss
-  "metrics": [
-    "accuracy", "top_k_acc"            // list of metrics to evaluate
-  ],                         
-  "lr_scheduler": {
-    "type": "StepLR",                  // learning rate scheduler
-    "args":{
-      "step_size": 50,          
-      "gamma": 0.1
-    }
-  },
-  "trainer": {
-    "epochs": 100,                     // number of training epochs
-    "save_dir": "saved/",              // checkpoints are saved in save_dir/models/name
-    "save_freq": 1,                    // save checkpoints every save_freq epochs
-    "verbosity": 2,                    // 0: quiet, 1: per epoch, 2: full
-  
-    "monitor": "min val_loss"          // mode and metric for model performance monitoring. set 'off' to disable.
-    "early_stop": 10	                 // number of epochs to wait before early stop. set 0 to disable.
-  
-    "tensorboard": true,               // enable tensorboard visualization
-  }
-}
+arch:
+  type: MnistModel         # name of model architecture to train
+  args: {}
+
+data_loader:
+  type: MnistDataLoader    # selecting data loader
+  args:
+    data_dir: data/        # dataset path
+    batch_size: 64         # batch size
+    shuffle: true          # shuffle training data before splitting
+    validation_split: 0.1  # size of validation dataset (float portion or int samples)
+    num_workers: 2         # number of cpu processes for data loading
+
+optimizer:
+  type: Adam
+  args:
+    lr: 0.001              # learning rate
+    weight_decay: 0        # (optional) weight decay
+    amsgrad: true
+
+loss: nll_loss
+metrics:
+  - accuracy
+  - top_k_acc            # list of metrics to evaluate
+
+lr_scheduler:
+  type: StepLR            # learning rate scheduler
+  args:
+    step_size: 50
+    gamma: 0.1
+
+trainer:
+  epochs: 100             # number of training epochs
+  save_dir: saved/        # checkpoints are saved in save_dir/models/name
+  save_freq: 1            # save checkpoints every save_freq epochs
+  verbosity: 2            # 0: quiet, 1: per epoch, 2: full
+  monitor: min val_loss   # mode and metric for monitoring; set 'off' to disable
+  early_stop: 10          # epochs to wait before early stop; set 0 to disable
+  tensorboard: true       # enable tensorboard visualization
 ```
 
 Add addional configurations if you need.
 
 ### Using config files
-Modify the configurations in `.json` config files, then run:
+Modify the configurations in `.yml` config files, then run:
 
   ```
-  python train.py --config config.json
+  python train.py --config config.yml
   ```
 
 ### Resuming from checkpoints
@@ -173,7 +165,7 @@ You can enable multi-GPU training by setting `n_gpu` argument of the config file
 If configured to use smaller number of gpu than available, first n devices will be used by default.
 Specify indices of available GPUs by cuda environmental variable.
   ```
-  python train.py --device 2,3 -c config.json
+  python train.py --device 2,3 -c config.yml
   ```
   This is equivalent to
   ```
@@ -192,7 +184,7 @@ This script will filter out unneccessary files like cache, git files or readme f
 Changing values of config file is a clean, safe and easy way of tuning hyperparameters. However, sometimes
 it is better to have command line options if some values need to be changed too often or quickly.
 
-This template uses the configurations stored in the json file by default, but by registering custom options as follows
+This template uses the configurations stored in the YAML file by default, but by registering custom options as follows
 you can change some of them using CLI flags.
 
   ```python
@@ -206,7 +198,7 @@ you can change some of them using CLI flags.
   ```
 `target` argument should be sequence of keys, which are used to access that option in the config dict. In this example, `target` 
 for the learning rate option is `('optimizer', 'args', 'lr')` because `config['optimizer']['args']['lr']` points to the learning rate.
-`python train.py -c config.json --bs 256` runs training with options given in `config.json` except for the `batch size`
+`python train.py -c config.yml --bs 256` runs training with options given in `config.yml` except for the `batch size`
 which is increased to 256 by command line options.
 
 
@@ -283,8 +275,10 @@ Custom loss functions can be implemented in 'model/loss.py'. Use them by changin
 Metric functions are located in 'model/metric.py'.
 
 You can monitor multiple metrics by providing a list in the configuration file, e.g.:
-  ```json
-  "metrics": ["accuracy", "top_k_acc"],
+  ```yaml
+  metrics:
+    - accuracy
+    - top_k_acc
   ```
 
 ### Additional logging
@@ -308,8 +302,8 @@ The `validation_split` can be a ratio of validation set per total data(0.0 <= fl
 
 ### Checkpoints
 You can specify the name of the training session in config files:
-  ```json
-  "name": "MNIST_LeNet",
+  ```yaml
+  name: MNIST_LeNet
   ```
 
 The checkpoints will be saved in `save_dir/name/timestamp/checkpoint_epoch_n`, with timestamp in mmdd_HHMMSS format.
@@ -342,7 +336,7 @@ This template supports Tensorboard visualization by using either  `torch.utils.t
     Make sure that `tensorboard` option in the config file is turned on.
 
     ```
-     "tensorboard" : true
+    tensorboard: true
     ```
 
 3. **Open Tensorboard server** 
